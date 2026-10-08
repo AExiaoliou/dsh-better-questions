@@ -1,10 +1,10 @@
 ---
 name: better-questions-none
-description: Use ask_better_questions for ordinary choices or free-text clarification without previews.
+description: Use ask_with_prototype for ordinary choices or free-text clarification without previews.
 ---
 # Ordinary questions
 
-Use `ask_better_questions` when you need a human choice or missing information. `type: "none"` is the default and ignores `proto`. Omit `options` for a free-text question. Prefer a small set of meaningful alternatives with concise tradeoff descriptions.
+Use `ask_with_prototype` when you need a human choice or missing information. `type: "none"` is the default and ignores `proto`. Omit `options` for a free-text question. Prefer a small set of meaningful alternatives with concise tradeoff descriptions.
 
 ```json
 {"questions":[{"id":"scope","question":"这次先完成哪个范围？","type":"none","options":[{"label":"核心流程","description":"先验证完整使用路径。","recommended":true},{"label":"完整功能","description":"同时覆盖高级场景。"}]},{"id":"constraints","question":"还有哪些限制需要考虑？"}]}

@@ -1,10 +1,10 @@
 ---
 name: better-questions-code
-description: Compare API designs or pseudocode with read-only code previews in ask_better_questions.
+description: Compare API designs or pseudocode with read-only code previews in ask_with_prototype.
 ---
 # Code comparisons
 
-Call `ask_better_questions` with `type: "code"`. Every option supplies `proto` as raw source or pseudocode text. A single complete Markdown code fence may provide a language hint; otherwise the preview displays plain text. Code is read-only, copyable, and never executed. Do not rely on syntax highlighting.
+Call `ask_with_prototype` with `type: "code"`. Every option supplies `proto` as raw source or pseudocode text. A single complete Markdown code fence may provide a language hint; otherwise the preview displays plain text. Code is read-only, copyable, and never executed. Do not rely on syntax highlighting.
 
 ```json
 {"questions":[{"id":"api","question":"哪种调用方式更适合？","type":"code","options":[{"label":"对象参数","description":"可选参数更容易扩展。","recommended":true,"proto":"function search({ query, limit = 20 }) {\n  return index.search(query, { limit });\n}"},{"label":"位置参数","description":"简单调用更短。","proto":"function search(query, limit = 20) {\n  return index.search(query, { limit });\n}"}]}]}

@@ -1,10 +1,10 @@
 ---
 name: better-questions-html
-description: Compare self-contained HTML/CSS prototypes or CSS animations in ask_better_questions.
+description: Compare self-contained HTML/CSS prototypes or CSS animations in ask_with_prototype.
 ---
 # HTML and CSS prototypes
 
-Call `ask_better_questions` with `type: "html"`. Each option supplies a self-contained HTML/CSS **string** in `proto`. Fragments and full documents are accepted; the preview sanitizes them into an isolated document. Prefer simple semantic HTML with inline styles or a `<style>` element.
+Call `ask_with_prototype` with `type: "html"`. Each option supplies a self-contained HTML/CSS **string** in `proto`. Fragments and full documents are accepted; the preview sanitizes them into an isolated document. Prefer simple semantic HTML with inline styles or a `<style>` element.
 
 ```json
 {"questions":[{"id":"motion","question":"选择加载动效","type":"html","options":[{"label":"呼吸圆点","recommended":true,"proto":"<style>@keyframes pulse{to{opacity:.25;transform:scale(.7)}}.dot{width:32px;height:32px;border-radius:50%;background:#2563eb;animation:pulse 1s ease-in-out infinite alternate}</style><div class='dot'></div>"},{"label":"静态提示","proto":"<div style='padding:24px;font:16px system-ui'>正在加载…</div>"}]}]}

@@ -3,7 +3,7 @@
 [![CI](https://github.com/AExiaoliou/dsh-better-questions/actions/workflows/ci.yml/badge.svg)](https://github.com/AExiaoliou/dsh-better-questions/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A prototype-aware question plugin for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness). It provides the `ask_better_questions` tool with paginated questions, single and multiple choice, custom answers, recommendations, YAML layouts, code, isolated HTML/CSS previews, and file sidebar links.
+A prototype-aware question plugin for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness). It provides the `ask_with_prototype` tool with paginated questions, single and multiple choice, custom answers, recommendations, YAML layouts, code, isolated HTML/CSS previews, and file sidebar links.
 
 Recommendations affect the initial preview only; they never select an answer automatically. The plugin is currently version `0.1.0` and targets DSH `0.2.1-alpha.1`, Cordis `4.0.5-alpha.1`, and React 18.
 
@@ -13,7 +13,7 @@ Recommendations affect the initial preview only; they never select an answer aut
 - [Security policy](SECURITY.md)
 - [Changelog](CHANGELOG.md)
 
-DSH 的原型提问插件，提供 `ask_better_questions` 工具。卡片支持分页问题、单选/多选、自定义回答、推荐标记，以及 YAML 布局、代码、隔离 HTML 和侧栏文件。推荐只影响初始预览，不会自动选中答案。
+DSH 的原型提问插件，提供 `ask_with_prototype` 工具。卡片支持分页问题、单选/多选、自定义回答、推荐标记，以及 YAML 布局、代码、隔离 HTML 和侧栏文件。推荐只影响初始预览，不会自动选中答案。
 
 版本 **0.1.0**，针对 **DSH 0.2.1-alpha.1 / Cordis 4.0.5-alpha.1 / React 18** 实现并锁定 peer 版本。不同 DSH 版本需要重新核对契约，不能仅修改版本范围。
 

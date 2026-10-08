@@ -238,7 +238,7 @@ describe('tool view and file addresses', () => {
   it('reopens an active call through the optional public panel face', () => {
     const h = harness()
     const entry = h.live('tool.call.toolview')[0]!
-    expect(entry.options.key).toBe('ask_better_questions')
+    expect(entry.options.key).toBe('ask_with_prototype')
     const face = entry.options.inject('s1')
     expect(face.revealPanel('c1')).toBe(true)
     expect(h.reveal).toHaveBeenCalledWith('s1', 'c1')

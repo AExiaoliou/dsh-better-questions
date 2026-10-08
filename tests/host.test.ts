@@ -123,6 +123,6 @@ describe('host tool and replay projection', () => {
     const rows: any[] = [];
     registerSkills({ skills: { register: (value: unknown) => rows.push(value) } } as never);
     expect(rows.map(row => row.name)).toEqual(['none', 'layout', 'code', 'html', 'file'].map(type => `better-questions-${type}`));
-    for (const row of rows) { expect(row.content).toContain('ask_better_questions'); expect(row.path).toMatch(/SKILL\.md$/); expect(row.content.startsWith('---')).toBe(false); }
+    for (const row of rows) { expect(row.content).toContain('ask_with_prototype'); expect(row.path).toMatch(/SKILL\.md$/); expect(row.content.startsWith('---')).toBe(false); }
   });
 });

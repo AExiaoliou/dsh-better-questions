@@ -1,10 +1,10 @@
 ---
 name: better-questions-layout
-description: Compare UI layouts using restricted YAML trees in ask_better_questions.
+description: Compare UI layouts using restricted YAML trees in ask_with_prototype.
 ---
 # Layout comparisons
 
-Call `ask_better_questions` with `questions[].type: layout`. Each option's `proto` is a **string containing one YAML 1.2 node tree** rendered as a grayscale, theme-aware wireframe (not a working app). Put labels and tradeoffs in `label`/`description`, not in the tree. Invalid trees are rejected before the user is asked; the error names the option, the YAML line/column or node path, and the allowed values. Fix the prototype and call again.
+Call `ask_with_prototype` with `questions[].type: layout`. Each option's `proto` is a **string containing one YAML 1.2 node tree** rendered as a grayscale, theme-aware wireframe (not a working app). Put labels and tradeoffs in `label`/`description`, not in the tree. Invalid trees are rejected before the user is asked; the error names the option, the YAML line/column or node path, and the allowed values. Fix the prototype and call again.
 
 ## Making good wireframes
 

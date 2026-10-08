@@ -2,7 +2,7 @@ import { z } from 'zod';
 import type {} from '@deepseek-ai/dsh-session-projection/types';
 import { parseLayout } from './layout.js';
 
-export const TOOL_NAME = 'ask_better_questions';
+export const TOOL_NAME = 'ask_with_prototype';
 export const PROJECTION_KEY = 'betterQuestions';
 export const QUESTION_TYPES = ['none', 'layout', 'code', 'html', 'file'] as const;
 export type QuestionType = typeof QUESTION_TYPES[number];

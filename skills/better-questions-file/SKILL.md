@@ -1,10 +1,10 @@
 ---
 name: better-questions-file
-description: Offer existing files as choices and open them in the Harness sidebar with ask_better_questions.
+description: Offer existing files as choices and open them in the Harness sidebar with ask_with_prototype.
 ---
 # Existing file choices
 
-Call `ask_better_questions` with `type: "file"`. Every option's `proto` is a **native filesystem path string**. Relative paths resolve from the question's Session workspace, not the plugin directory; absolute paths preserve their meaning. Use `/` separators for portable examples. Do not put quotes, Markdown links, `file://` URIs, line-number suffixes, or embedded file contents into proto.
+Call `ask_with_prototype` with `type: "file"`. Every option's `proto` is a **native filesystem path string**. Relative paths resolve from the question's Session workspace, not the plugin directory; absolute paths preserve their meaning. Use `/` separators for portable examples. Do not put quotes, Markdown links, `file://` URIs, line-number suffixes, or embedded file contents into proto.
 
 ```json
 {"questions":[{"id":"reference","question":"以哪个文档作为实现依据？","type":"file","options":[{"label":"当前方案","description":"已同步到现有接口。","recommended":true,"proto":"docs/current-design.md"},{"label":"备选方案","proto":"docs/alternative.md"}]}]}
