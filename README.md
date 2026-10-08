@@ -28,7 +28,7 @@ pnpm pack
 通过 DSH 官方 `plugin_manager` 安装；先执行 `list_bundles`，再执行：
 
 ```json
-{"action":"install_bundle","target":"/home/aexiaoliou/workspace/dsh-better-questions"}
+{"action":"install_bundle","target":"/absolute/path/to/dsh-better-questions"}
 ```
 
 换到其他机器时使用实际的包目录绝对路径。安装作用于当前 profile 的所有会话。以管理器返回的 `application` 和 `warnings` 判断生效；`restart-required` 需要重启，`applied` 才表示现场应用完成。不要手改 profile 文件或在 profile 目录执行包管理命令。
