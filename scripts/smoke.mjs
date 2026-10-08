@@ -12,7 +12,7 @@ host.apply({
   skills: { register: skill => registrations.skills.push(skill) },
   sessionProjections: { register: projection => registrations.projections.push(projection) },
 });
-assert.equal(registrations.tools[0].name, 'ask_better_questions');
+assert.equal(registrations.tools[0].name, 'ask_with_prototype');
 assert.equal(registrations.projections[0].key, 'betterQuestions');
 assert.equal(registrations.skills.length, 5);
 for (const skill of registrations.skills) assert.ok(skill.content.length > 100 && !skill.content.startsWith('---'));
