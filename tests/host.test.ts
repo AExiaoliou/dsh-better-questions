@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { SessionEvent } from '@deepseek-ai/dsh-session';
 import { parseRequest, canonicalizeAnswers, MAX_BATCH_PROTO_BYTES, MAX_PROTO_BYTES, TOOL_NAME } from '../src/shared/model';
 import { applyQuestionEvent, questionProjection } from '../src/host/projection';
-import { createQuestionTool } from '../src/host/tool';
+import { createQuestionTool, toolParameters } from '../src/host/tool';
 import { registerSkills } from '../src/skills';
 
 const question = { id: 'q', question: 'Choose', options: [{ label: 'A' }, { label: 'B', recommended: true }] };
@@ -66,10 +66,14 @@ describe('request and answer contract', () => {
 });
 
 describe('host tool and replay projection', () => {
-  it('tells agents to load each type skill once and explains selection previews', () => {
+  it('requires selection before type skills, reuses skills and explains selection previews', () => {
     const description = createQuestionTool({ userQuestions: {} } as never).description;
     expect(description).toContain('only before its first use in this conversation');
+    expect(description).toContain('Read better-questions-select before any type-specific skill');
+    expect(description).toContain('use it to choose each question type');
+    expect(description).toContain('reuse the selection and type skills afterward');
     expect(description).toContain('Selecting an option shows its preview');
+    expect(description).toContain('files open in the sidebar');
   });
   it('forwards only base question fields and uses the same call identity/signal', async () => {
     const ask = vi.fn(async () => ({ answers: [{ id: 'q', selected: ['B'] }] }));
@@ -119,10 +123,16 @@ describe('host tool and replay projection', () => {
     expect(ended.view.active).toEqual([]);
     expect(applyQuestionEvent(ended, { seq: 7, type: 'turn/end', data: {} } as never)).toBe(ended);
   });
-  it('registers five discoverable summaries, with full instructions available separately', () => {
+  it('registers a selector and five discoverable type skills with complete routing', () => {
     const rows: any[] = [];
     registerSkills({ skills: { register: (value: unknown) => rows.push(value) } } as never);
-    expect(rows.map(row => row.name)).toEqual(['none', 'layout', 'code', 'html', 'file'].map(type => `better-questions-${type}`));
+    expect(rows.map(row => row.name)).toEqual(['select', 'none', 'layout', 'code', 'html', 'file'].map(name => `better-questions-${name}`));
+    const selector = rows[0];
+    expect(toolParameters.properties.questions.items.properties.type.enum).toEqual(['none', 'layout', 'code', 'html', 'file']);
+    for (const type of toolParameters.properties.questions.items.properties.type.enum) {
+      expect(selector.content).toContain(`\`better-questions-${type}\``);
+      expect(rows.find(row => row.name === `better-questions-${type}`)).toBeDefined();
+    }
     for (const row of rows) { expect(row.content).toContain('ask_with_prototype'); expect(row.path).toMatch(/SKILL\.md$/); expect(row.content.startsWith('---')).toBe(false); }
   });
 });

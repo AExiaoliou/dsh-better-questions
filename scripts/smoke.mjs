@@ -14,7 +14,7 @@ host.apply({
 });
 assert.equal(registrations.tools[0].name, 'ask_with_prototype');
 assert.equal(registrations.projections[0].key, 'betterQuestions');
-assert.equal(registrations.skills.length, 5);
+assert.deepEqual(registrations.skills.map(skill => skill.name), ['select', 'none', 'layout', 'code', 'html', 'file'].map(name => `better-questions-${name}`));
 for (const skill of registrations.skills) assert.ok(skill.content.length > 100 && !skill.content.startsWith('---'));
 let client;
 const modules = { react: React, 'react/jsx-runtime': Jsx, '@deepseek-ai/dsh-client-store': Store };
@@ -31,4 +31,4 @@ runInNewContext(await readFile(new URL('../dist/client.js', import.meta.url), 'u
 assert.equal(typeof client.apply, 'function');
 assert.ok(client.inject.includes('slots'));
 assert.ok(!JSON.stringify(registrations.tools[0].parameters).includes('SKILL.md'));
-console.log('PASS: built Host registers tool/projection/five skill resources; Client loads with only supported baseline modules.');
+console.log('PASS: built Host registers tool/projection/selection and five type skill resources; Client loads with only supported baseline modules.');

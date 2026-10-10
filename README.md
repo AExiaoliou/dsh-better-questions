@@ -103,15 +103,16 @@ HTML 先在惰性 template 中解析并按白名单重新序列化，去除脚�
 
 ## 按需技能与上下文开销
 
-工具描述要求每种 type 在同一会话首次使用前加载对应 skill 一次，后续复用。五个独立 skill 在目录中分别发现、按需加载：
+工具描述要求先读取题型选择 skill，按每个问题的决策目标选择 type，再在该 type 于同一会话首次使用前加载对应 skill。选择说明和已加载的题型说明在后续复用；同一批次可使用不同题型。六个独立 skill 在目录中分别发现、按需加载，公开题型仍为五种：
 
+- [better-questions-select](skills/better-questions-select/SKILL.md)：用具体例子选择题型，区分结构与样式、文件与代码，并引导读取对应 skill。
 - [better-questions-none](skills/better-questions-none/SKILL.md)：普通决策、单选/多选及自由文本。
 - [better-questions-layout](skills/better-questions-layout/SKILL.md)：完整 YAML 语法与布局比较。
 - [better-questions-code](skills/better-questions-code/SKILL.md)：代码/配置比较及围栏用法。
 - [better-questions-html](skills/better-questions-html/SKILL.md)：隔离 HTML/CSS 原型及限制。
 - [better-questions-file](skills/better-questions-file/SKILL.md)：真实文件路径与侧栏行为。
 
-`pnpm measure` 的 `o200k_base` 估算：工具名称/描述/参数 335 tokens，五个技能目录条目合计 131 tokens；单项技能正文为 none 254、layout 1449、code 319、html 360、file 285 tokens。它们不是实际模型账单：模型 tokenizer、框架目录包装及动态内容会改变数值。技能正文不加入工具 schema。
+`pnpm measure` 的 `o200k_base` 估算：工具名称/描述/参数 358 tokens，六个技能目录条目合计 163 tokens；单项技能正文为 select 754、none 254、layout 1449、code 319、html 360、file 285 tokens。它们不是实际模型账单：模型 tokenizer、框架目录包装及动态内容会改变数值。技能正文不加入工具 schema。
 
 ## 生命周期与降级
 

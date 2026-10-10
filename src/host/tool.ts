@@ -52,7 +52,7 @@ export const outputSchema = {
 export function createQuestionTool(ctx: Pick<Context, 'userQuestions'>): ToolDefinition {
   return {
     name: TOOL_NAME,
-    description: 'Ask the user to choose or clarify, optionally comparing prototypes. Load each better-questions-{type} skill only before its first use in this conversation; reuse it afterward. Selecting an option shows its preview (files open in the sidebar).',
+    description: 'Ask the user to choose or clarify, optionally comparing prototypes. Read better-questions-select before any type-specific skill; use it to choose each question type. Load each better-questions-{type} skill only before its first use in this conversation; reuse the selection and type skills afterward. Selecting an option shows its preview (files open in the sidebar).',
     parameters: toolParameters,
     output: {
       schema: outputSchema,
