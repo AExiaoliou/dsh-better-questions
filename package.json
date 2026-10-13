@@ -1,6 +1,6 @@
 {
   "name": "dsh-better-questions",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Prototype-aware questions for DeepSeek Harness: YAML layouts, code, HTML and sidebar files.",
   "type": "module",
   "repository": {
@@ -41,6 +41,9 @@
     "visual": "node scripts/visual/shoot.mjs"
   },
   "dsh": {
+    "engines": {
+      "dsh": ">=0.2.0-rc.2"
+    },
     "bundle": {
       "patch": "./cordis.patch.yml"
     },
