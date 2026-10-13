@@ -121,17 +121,3 @@ Host 使用 `tools.register`、`userQuestions.ask`、`skills.register` 与 `sess
 `betterQuestions` 投影只派生本工具日志里的活动调用元数据；任何工具结果及 turn/end 都移除对应活动项，分叉继承前缀不会复活问题。Client 观察框架已保留的会话代际，按活动调用注册 `conversation.composer`，优先级 -1；结构化匹配 session/call/PendingQuestion，通过原有 carrier 提交或隐藏。草稿保存在 Session 范围 store 中。订阅与动态注册在调用消失、会话替换、插槽撤销及插件卸载时清理。
 
 运行中断或重启不会自动接受旧答案，也不提供超时续接。没有可关联工具日志时不能恢复富原型卡片，基础提问通道可继续展示标准题目。没有活动回答通道时卡片不可提交。关闭后的重新打开依赖原有 `userQuestionPanels` 服务。
-
-## 验证与版本依据
-
-本机安装记录（2026-10-07）：官方管理器通过上述目录安装成功，返回 `application: applied`、`warnings: []`。Host Inspect 已确认工具注册与 `include:better-questions`，五个 skill 已进入当前目录且 layout skill 可实际加载。本次是指向源码目录的本地链接安装，请保留目录；可分发产物由 `pnpm pack` 生成。安装后的 Client 插槽 Inspect 连续两次超时，因此暂未确认当前页完成 Client 激活，也未完成浏览器视觉验收。如页面尚未显示富卡片，刷新或重新连接原有 GUI 后再核对。
-
-当前自动验证通过：Host/Client TypeScript、123 项测试（33 Host/数据/回放、54 布局语法、17 卡片/预览、7 线框渲染与技能同步、12 Client 生命周期/会话/存储），以及构建产物 Host 注册和浏览器模块装载 smoke。覆盖推荐不自动选择、选中即预览而单独预览不选中、草稿恢复与隔离、失败重试、停止/结果清理、分叉历史、恶意 HTML 和 YAML 约束。浏览器真实渲染、CSP 网络拦截、侧栏打开及移动端外观需要在实际 GUI 验收，jsdom 不提供这些保证。重新构建后切换 bundle 虽返回 `applied`，Host Inspect 仍显示旧工具描述；本地链接的已安装包代码更新需要重启当前 DSH 进程，再刷新现有 Web 页面验证。
-
-契约核对使用官方文档与运行时 Inspect；官网可能领先当前版本，签名以 [dsh-v0.2.1-alpha.1 源码](https://github.com/deepseek-ai/deepseek-harness/tree/dsh-v0.2.1-alpha.1) 为准。
-
-- [插件开发](https://deepseek-harness.github.io/deepseek-harness/en/develop/basic/index.md)与[持久安装](https://deepseek-harness.github.io/deepseek-harness/en/develop/practice/dynamic-cordis.md)
-- [User questions](https://deepseek-harness.github.io/deepseek-harness/en/reference/subsystems/user-questions.md)、[Tools](https://deepseek-harness.github.io/deepseek-harness/en/reference/subsystems/tools.md)、[Skills](https://deepseek-harness.github.io/deepseek-harness/en/reference/subsystems/skills.md)
-- [Session projection](https://deepseek-harness.github.io/deepseek-harness/en/reference/subsystems/session-projection.md)、[Slots](https://deepseek-harness.github.io/deepseek-harness/en/reference/subsystems/slots.md)、[Client modules](https://deepseek-harness.github.io/deepseek-harness/en/reference/subsystems/client-modules.md)
-
-Runtime 核对对象：Host `tools / userQuestions / skills / sessionProjections`；Client `sessions / slots / uiSession / sidebarRight / locale`、`conversation.composer` 与 `tool.call.toolview`，以及主题 tokens。部分 Client Inspect 请求曾超时；相应签名由同版本公开源码及已发布类型包补充验证。公开 ModuleLoader 单例映射包含 React 和 client-store；未导入其他插件的运行时组件。
