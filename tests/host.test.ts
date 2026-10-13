@@ -3,8 +3,6 @@ import type { SessionEvent } from '@deepseek-ai/dsh-session';
 import { parseRequest, canonicalizeAnswers, MAX_BATCH_PROTO_BYTES, MAX_PROTO_BYTES, TOOL_NAME } from '../src/shared/model';
 import { applyQuestionEvent, questionProjection } from '../src/host/projection';
 import { createQuestionTool, toolParameters } from '../src/host/tool';
-import { createLayoutCheckTool, LAYOUT_CHECK_TOOL_NAME } from '../src/host/layout-tool';
-import { renderLayoutPng } from '../src/host/layout-preview';
 import { registerSkills } from '../src/skills';
 
 const question = { id: 'q', question: 'Choose', options: [{ label: 'A' }, { label: 'B', recommended: true }] };
@@ -64,25 +62,6 @@ describe('request and answer contract', () => {
     [{ id: 'q', selected: ['unknown'] }], [{ id: 'q', selected: ['A', 'B'] }], [{ id: 'q', selected: ['A', 'A'] }],
   ])('rejects forged, duplicate, missing, or excess selections', answers => {
     expect(() => canonicalizeAnswers(parsed(), { answers })).toThrow();
-  });
-});
-
-describe('layout pre-check tool', () => {
-  it('returns an actionable validation error without saving an invalid preview', async () => {
-    const saveImage = vi.fn();
-    const tool = createLayoutCheckTool({ attachments: { saveImage } } as never);
-    expect(tool.name).toBe(LAYOUT_CHECK_TOOL_NAME);
-    await expect(tool.execute({ proto: 'type: text\nstyle: red' }, {} as never)).resolves.toEqual({ valid: false, error: '$.style: unknown field for text' });
-    expect(saveImage).not.toHaveBeenCalled();
-  });
-  it('saves a PNG attachment and returns it for a valid layout', async () => {
-    const image = { attachmentId: 'sha256:test', mediaType: 'image/png', bytes: 10, width: 960, height: 120 };
-    const saveImage = vi.fn(async () => image);
-    const tool = createLayoutCheckTool({ attachments: { saveImage } } as never);
-    await expect(tool.execute({ proto: 'type: frame\nchildren: [{type: heading, label: Home}]' }, {} as never)).resolves.toEqual({ valid: true, image });
-    expect(saveImage).toHaveBeenCalledWith(expect.objectContaining({ mediaType: 'image/png', name: 'layout-preview.png', data: expect.any(Uint8Array) }));
-    expect((tool.output!.render!({}, { valid: true, image } as never) as any[]).map(block => block.type)).toEqual(['text', 'image']);
-    expect(Buffer.from(renderLayoutPng({ type: 'text' })).subarray(0, 8)).toEqual(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
   });
 });
 

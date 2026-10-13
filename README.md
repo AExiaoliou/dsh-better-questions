@@ -3,9 +3,9 @@
 [![CI](https://github.com/AExiaoliou/dsh-better-questions/actions/workflows/ci.yml/badge.svg)](https://github.com/AExiaoliou/dsh-better-questions/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A prototype-aware question plugin for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness). It provides the `ask_with_prototype` tool with paginated questions, single and multiple choice, custom answers, recommendations, YAML layouts, code, isolated HTML/CSS previews, and file sidebar links. The companion `check_layout_prototype` tool validates one layout proto before asking and returns a PNG wireframe preview to the agent when it is valid.
+A prototype-aware question plugin for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness). It provides the `ask_with_prototype` tool with paginated questions, single and multiple choice, custom answers, recommendations, YAML layouts, code, isolated HTML/CSS previews, and file sidebar links.
 
-Recommendations affect the initial preview only; they never select an answer automatically. The plugin is currently version `0.1.2` and targets DSH `0.2.1-alpha.1`, Cordis `4.0.5-alpha.1`, and React 18.
+Recommendations affect the initial preview only; they never select an answer automatically. The plugin is currently version `0.1.4` and targets DSH `0.2.1-alpha.1`, Cordis `4.0.5-alpha.1`, and React 18.
 
 - [Install and develop](#安装与开发)
 - [Tool interface](#工具接口)
@@ -15,7 +15,7 @@ Recommendations affect the initial preview only; they never select an answer aut
 
 DSH 的原型提问插件，提供 `ask_with_prototype` 工具。卡片支持分页问题、单选/多选、自定义回答、推荐标记，以及 YAML 布局、代码、隔离 HTML 和侧栏文件。推荐只影响初始预览，不会自动选中答案。
 
-版本 **0.1.2**，针对 **DSH 0.2.1-alpha.1 / Cordis 4.0.5-alpha.1 / React 18** 实现。不同 DSH 版本需要重新核对契约，不能仅修改版本范围。
+版本 **0.1.4**，针对 **DSH 0.2.1-alpha.1 / Cordis 4.0.5-alpha.1 / React 18** 实现。不同 DSH 版本需要重新核对契约，不能仅修改版本范围。
 
 ## 安装与开发
 
@@ -73,7 +73,6 @@ interface Result {
 
 - 批次至少一题，题目 ID 在批次内唯一；选项标签在题内唯一；每题最多一个 `recommended: true`。
 - `proto` 提供时始终是字符串；`none` 忽略它且允许没有选项，其他类型要求至少一个选项，并且每项有非空 `proto`。
-- `check_layout_prototype` 接收单个 `proto`，复用 `layout` 的严格 YAML 校验；成功返回 `valid: true` 和 PNG 线框图附件，失败返回 `valid: false` 及行列或节点路径错误。建议在调用 `ask_with_prototype` 前先用于检查候选布局。
 - 单个原型最多 64 KiB UTF-8，整个批次最多 256 KiB；没有额外的题数/选项数上限。
 - 提交结果按原始题目及选项顺序排列，`selected` 返回原始标签；允许选项和 `custom` 同时存在。空白自定义文本省略，其他自定义文本原样保留。
 - 每道题都出现在结果中。跳过清空该题选择和自定义文本，返回 `selected: []`；最后一题的“跳过并提交”会提交整个批次。

@@ -1,6 +1,6 @@
 {
   "name": "dsh-better-questions",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Prototype-aware questions for DeepSeek Harness: YAML layouts, code, HTML and sidebar files.",
   "type": "module",
   "repository": {
