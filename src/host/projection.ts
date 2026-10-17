@@ -43,7 +43,9 @@ export function applyQuestionEvent(state: ProjectionState, event: SessionEvent):
 
 export const questionProjection = {
   key: PROJECTION_KEY,
-  stateVersion: 1,
+  // v2 drops the question `type` field and the inline-proto projection state, so
+  // persisted v1 rows are discarded and the log is folded with the current schema.
+  stateVersion: 2,
   stateSchema: z.object({
     inheritedEventCount: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
     view: projectionViewSchema,

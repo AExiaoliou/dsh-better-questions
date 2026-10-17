@@ -28,14 +28,15 @@ pnpm typecheck
 pnpm test
 pnpm build
 node scripts/smoke.mjs
+pnpm measure
 pnpm pack
 ```
 
-`pnpm visual` is optional and requires a local Chrome installation. Generated build output, coverage, archives, and screenshots should not be committed.
+`node scripts/smoke.mjs` and `pnpm measure` need the built `dist/` directory, so run `pnpm build` first. Generated build output, coverage, archives, and screenshots should not be committed.
 
 ## Making changes
 
-Keep changes focused and preserve the existing public contract. When changing the question schema, preview behavior, skill files, or DSH integration points, update the relevant tests and README documentation in the same pull request.
+Keep changes focused and preserve the existing public contract. When changing the question schema, prototype path handling, sidebar opening behavior, or DSH integration points, update the relevant tests and README documentation in the same pull request. The plugin does not ship or register skills, and it does not render prototypes inline; keep that division intact.
 
 Use clear commit messages and include in the pull request:
 

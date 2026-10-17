@@ -1,61 +1,70 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { SessionEvent } from '@deepseek-ai/dsh-session';
-import { parseRequest, canonicalizeAnswers, MAX_BATCH_PROTO_BYTES, MAX_PROTO_BYTES, TOOL_NAME } from '../src/shared/model';
+import { parseRequest, canonicalizeAnswers, TOOL_NAME } from '../src/shared/model';
 import { applyQuestionEvent, questionProjection } from '../src/host/projection';
 import { createQuestionTool, toolParameters } from '../src/host/tool';
-import { registerSkills } from '../src/skills';
 
-const question = { id: 'q', question: 'Choose', options: [{ label: 'A' }, { label: 'B', recommended: true }] };
+const question = { id: 'q', question: 'Choose', options: [{ label: 'A', proto: 'prototypes/a.html' }, { label: 'B', recommended: true }] };
 const parsed = () => parseRequest({ questions: [question] }).questions;
 
 describe('request and answer contract', () => {
-  it('normalizes defaults, ignores none proto, retains ordering and recommendation', () => {
-    const result = parseRequest({ questions: [{ ...question, options: [{ label: 'A', proto: 'ignored' }, question.options[1]] }] });
-    expect(result.questions[0]).toEqual({ ...question, type: 'none', multi_select: false });
-    expect(parsed()[0].options[0].recommended).toBeUndefined();
-    expect(parseRequest({ questions: [{ id: 'text', question: 'Explain' }] }).questions[0].options).toEqual([]);
+  it('normalizes defaults, retains prototype paths, ordering and recommendations', () => {
+    const result = parseRequest({ questions: [{ id: 'q', question: 'Choose', options: [{ label: 'A', proto: ' prototypes/a.html ' }, { label: 'B', recommended: true }] }] });
+    expect(result.questions[0]).toEqual({
+      id: 'q', question: 'Choose', multi_select: false,
+      options: [{ label: 'A', proto: ' prototypes/a.html ' }, { label: 'B', recommended: true }],
+    });
+    expect(parsed()[0].options[1]!.recommended).toBe(true);
+    expect(parseRequest({ questions: [{ id: 'text', question: 'Explain' }] }).questions[0]).toEqual({
+      id: 'text', question: 'Explain', multi_select: false, options: [],
+    });
   });
-  it.each(['layout', 'code', 'html', 'file'])('%s requires at least one option and nonempty string proto', type => {
-    for (const options of [[], [{ label: 'A' }], [{ label: 'A', proto: '' }], [{ label: 'A', proto: '  ' }], [{ label: 'A', proto: {} }]]) {
-      expect(() => parseRequest({ questions: [{ ...question, type, options }] })).toThrow();
+  it('keeps proto optional per option so ordinary choices and free text still work', () => {
+    const result = parseRequest({ questions: [
+      { id: 'plain', question: 'Which one?', options: [{ label: 'A' }, { label: 'B' }] },
+      { id: 'mixed', question: 'Compare', options: [{ label: 'A' }, { label: 'B', proto: 'docs/b.md' }] },
+      { id: 'text', question: 'Anything else?' },
+    ] }).questions;
+    expect(result[0]!.options).toEqual([{ label: 'A' }, { label: 'B' }]);
+    expect(result[1]!.options).toEqual([{ label: 'A' }, { label: 'B', proto: 'docs/b.md' }]);
+    expect(result[2]!.options).toEqual([]);
+  });
+  it.each([
+    ['', /nonempty file path/],
+    ['   ', /nonempty file path/],
+    [42, /string/],
+    [{ path: 'a.html' }, /string/],
+  ])('rejects a prototype that is not a nonempty path (%j)', (proto, error) => {
+    expect(() => parseRequest({ questions: [{ ...question, options: [{ label: 'A', proto }] }] })).toThrow(error);
+  });
+  it('rejects the removed type field and any other unknown field', () => {
+    for (const extra of [{ type: 'html' }, { typo: true }, { options: [{ label: 'A', type: 'file' }] }]) {
+      try { parseRequest({ questions: [{ ...question, ...extra }] }); throw new Error('unexpected success'); }
+      catch (error) { expect(error).toHaveProperty('issues'); expect((error as { issues: { path: unknown[] }[] }).issues[0]!.path[0]).toBe('questions'); }
     }
-    // Replay/projection parsing stays lenient so older records keep their rich cards.
-    expect(parseRequest({ questions: [{ ...question, type, options: [{ label: 'A', proto: 'invalid syntax is a local preview issue' }] }] }).questions[0].type).toBe(type);
-  });
-  it('validates layout grammar only when requested, with option label and node path', () => {
-    const make = (proto: string) => ({ questions: [{ ...question, type: 'layout', options: [{ label: 'Wide', proto: 'type: row' }, { label: 'Bad', proto }] }] });
-    expect(() => parseRequest(make('type: row\nchildren:\n  - {type: card}'), { layouts: true })).toThrow(/Invalid layout \(Bad\): \$\.children\[0\]\.type: unknown node type/);
-    expect(() => parseRequest(make('type: text\ncolor: red'), { layouts: true })).toThrow(/options.*1.*proto|\$\.color/s);
-    expect(parseRequest(make('type: frame\nchildren: [{type: nav, items: [A, B]}]'), { layouts: true }).questions[0].options).toHaveLength(2);
-    expect(parseRequest({ questions: [{ ...question, type: 'code', options: [{ label: 'A', proto: 'type: nope' }] }] }, { layouts: true }).questions).toHaveLength(1);
   });
   it.each([
     { questions: [] },
     { questions: [question, question] },
     { questions: [{ ...question, options: [{ label: 'A' }, { label: 'A' }] }] },
     { questions: [{ ...question, options: [{ label: 'A', recommended: true }, { label: 'B', recommended: true }] }] },
-    { questions: [{ ...question, type: 'unknown' }] },
     { questions: [{ ...question, question: '  ' }] },
     { questions: [{ ...question, multi_select: 'yes' }] },
-    { questions: [{ ...question, typo: true }] },
+    { questions: [{ ...question, id: ' ' }] },
   ])('rejects malformed API input with a field path', input => {
     try { parseRequest(input); throw new Error('unexpected success'); }
-    catch (error) { expect(error).toHaveProperty('issues'); expect((error as { issues: { path: unknown[] }[] }).issues[0].path[0]).toBe('questions'); }
-  });
-  it('enforces UTF-8 per-prototype and batch byte budgets at exact boundaries', () => {
-    const make = (protos: string[]) => ({ questions: [{ ...question, type: 'code', options: protos.map((proto, i) => ({ label: String(i), proto })) }] });
-    expect(() => parseRequest(make(['a'.repeat(MAX_PROTO_BYTES)]))).not.toThrow();
-    expect(() => parseRequest(make(['é'.repeat(MAX_PROTO_BYTES / 2 + 1)]))).toThrow('UTF-8 bytes');
-    const four = Array.from({ length: MAX_BATCH_PROTO_BYTES / MAX_PROTO_BYTES }, () => 'a'.repeat(MAX_PROTO_BYTES));
-    expect(() => parseRequest(make(four))).not.toThrow();
-    expect(() => parseRequest(make([...four, 'a']))).toThrow('Batch prototypes');
+    catch (error) { expect(error).toHaveProperty('issues'); expect((error as { issues: { path: unknown[] }[] }).issues[0]!.path[0]).toBe('questions'); }
   });
   it('has no arbitrary question/option count cap', () => {
-    expect(parseRequest({ questions: Array.from({ length: 60 }, (_, i) => ({ ...question, id: String(i), options: Array.from({ length: 60 }, (_, n) => ({ label: String(n) })) })) }).questions).toHaveLength(60);
+    expect(parseRequest({ questions: Array.from({ length: 60 }, (_, i) => ({
+      id: String(i), question: 'Choose', options: Array.from({ length: 60 }, (_, n) => ({ label: String(n) })),
+    })) }).questions).toHaveLength(60);
   });
   it('canonicalizes batch and selections to input order while retaining original labels and custom text', () => {
     const questions = parseRequest({ questions: [{ ...question, multi_select: true }, { id: 'empty', question: 'Anything else?' }] }).questions;
-    expect(canonicalizeAnswers(questions, { answers: [{ id: 'empty', selected: [], custom: '   ' }, { id: 'q', selected: ['B', 'A'], custom: ' note ' }] })).toEqual({ answers: [{ id: 'q', selected: ['A', 'B'], custom: ' note ' }, { id: 'empty', selected: [] }] });
+    expect(canonicalizeAnswers(questions, { answers: [{ id: 'empty', selected: [], custom: '   ' }, { id: 'q', selected: ['B', 'A'], custom: ' note ' }] })).toEqual({
+      answers: [{ id: 'q', selected: ['A', 'B'], custom: ' note ' }, { id: 'empty', selected: [] }],
+    });
   });
   it.each([
     [], [{ id: 'other', selected: [] }], [{ id: 'q', selected: [] }, { id: 'q', selected: [] }],
@@ -66,19 +75,32 @@ describe('request and answer contract', () => {
 });
 
 describe('host tool and replay projection', () => {
-  it('requires selection before type skills, reuses skills and explains selection previews', () => {
+  it('requires writing the prototype file before putting its path in proto', () => {
     const description = createQuestionTool({ userQuestions: {} } as never).description;
-    expect(description).toContain('only before its first use in this conversation');
-    expect(description).toContain('Read better-questions-select before any type-specific skill');
-    expect(description).toContain('use it to choose each question type');
-    expect(description).toContain('reuse the selection and type skills afterward');
-    expect(description).toContain('Selecting an option shows its preview');
-    expect(description).toContain('files open in the sidebar');
+    expect(description).toContain('first write the prototype file');
+    expect(description).toContain("put its path in that option's proto");
+    expect(description).toContain('opens the file in the right sidebar');
+    expect(description).toContain('Never put prototype content in proto');
+    expect(description).toContain('Options without proto are ordinary choices');
+    expect(description).not.toMatch(/better-questions-|skill/i);
+  });
+  it('exposes no type property and describes proto as a written file path', () => {
+    const parameters = JSON.parse(JSON.stringify(toolParameters)) as {
+      properties: { questions: { items: { properties: Record<string, { description?: string }>; required: string[] } } };
+    };
+    const item = parameters.properties.questions.items;
+    expect(Object.keys(item.properties)).toEqual(['id', 'question', 'header', 'options', 'multi_select']);
+    expect(item.properties).not.toHaveProperty('type');
+    expect(item.required).toEqual(['id', 'question']);
+    expect(item.properties.options).toBeDefined();
+    const proto = JSON.stringify(parameters).match(/"proto":\{[^}]*\}/)?.[0] ?? '';
+    expect(proto).toContain('Path to a prototype file');
+    expect(proto).toContain('right sidebar');
   });
   it('forwards only base question fields and uses the same call identity/signal', async () => {
     const ask = vi.fn(async () => ({ answers: [{ id: 'q', selected: ['B'] }] }));
     const tool = createQuestionTool({ userQuestions: { ask } } as never);
-    const input = { questions: [{ ...question, type: 'code', options: [{ label: 'A', proto: 'one' }, { label: 'B', proto: 'two', recommended: true }] }] };
+    const input = { questions: [{ ...question, options: [{ label: 'A', proto: 'prototypes/a.html' }, { label: 'B', proto: '/tmp/b.tsx', recommended: true }] }] };
     const signal = new AbortController().signal;
     const exec = { callId: 'call', signal, agent: { id: 'agent' } };
     expect(await tool.execute(input, exec as never)).toEqual({ answers: [{ id: 'q', selected: ['B'] }] });
@@ -93,7 +115,7 @@ describe('host tool and replay projection', () => {
     await expect(tool.execute({ questions: [] }, {} as never)).rejects.toThrow();
     expect(ask).not.toHaveBeenCalled();
     await expect(tool.execute({ questions: [question] }, {} as never)).rejects.toThrow('ASK_ABORTED');
-    await expect(tool.execute({ questions: [{ ...question, type: 'layout', options: [{ label: 'A', proto: 'type: text\nstyle: x' }] }] }, {} as never)).rejects.toThrow(/\$\.style: unknown field for text/);
+    await expect(tool.execute({ questions: [{ ...question, type: 'layout' }] }, {} as never)).rejects.toThrow();
     expect(ask).toHaveBeenCalledTimes(1);
   });
   const call = (seq = 0, callId = 'call', name = TOOL_NAME, args = JSON.stringify({ questions: [question] })) => ({ seq, type: 'tool/call', data: { callId, name, arguments: args } }) as unknown as SessionEvent;
@@ -109,6 +131,11 @@ describe('host tool and replay projection', () => {
     expect(questionProjection.stateSchema.parse(active)).toEqual(active);
     expect(questionProjection.wire.view(active)).toBe(active.view);
   });
+  it('ignores pre-upgrade call records that still carry a question type', () => {
+    const legacy = JSON.stringify({ questions: [{ ...question, type: 'html', options: [{ label: 'A', proto: '<p>A</p>' }] }] });
+    const initial = init();
+    expect(applyQuestionEvent(initial, call(0, 'legacy', TOOL_NAME, legacy))).toBe(initial);
+  });
   it.each([undefined, 'ASK_ABORTED', 'NO_PROVIDER', 'TOOL_OUTCOME_UNKNOWN'])('removes even failed/interrupted result %s', error => {
     const active = applyQuestionEvent(init(), call());
     expect(applyQuestionEvent(active, result('call', error)).view.active).toEqual([]);
@@ -123,16 +150,7 @@ describe('host tool and replay projection', () => {
     expect(ended.view.active).toEqual([]);
     expect(applyQuestionEvent(ended, { seq: 7, type: 'turn/end', data: {} } as never)).toBe(ended);
   });
-  it('registers a selector and five discoverable type skills with complete routing', () => {
-    const rows: any[] = [];
-    registerSkills({ skills: { register: (value: unknown) => rows.push(value) } } as never);
-    expect(rows.map(row => row.name)).toEqual(['select', 'none', 'layout', 'code', 'html', 'file'].map(name => `better-questions-${name}`));
-    const selector = rows[0];
-    expect(toolParameters.properties.questions.items.properties.type.enum).toEqual(['none', 'layout', 'code', 'html', 'file']);
-    for (const type of toolParameters.properties.questions.items.properties.type.enum) {
-      expect(selector.content).toContain(`\`better-questions-${type}\``);
-      expect(rows.find(row => row.name === `better-questions-${type}`)).toBeDefined();
-    }
-    for (const row of rows) { expect(row.content).toContain('ask_with_prototype'); expect(row.path).toMatch(/SKILL\.md$/); expect(row.content.startsWith('---')).toBe(false); }
+  it('bumps the projection state version so pre-upgrade persisted rows are discarded', () => {
+    expect(questionProjection.stateVersion).toBe(2);
   });
 });

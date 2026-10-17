@@ -18,7 +18,7 @@ function observable<T>(initial: T) {
     set: (next: T) => { value = next; for (const listener of [...listeners]) listener() },
   }
 }
-const questions = [{ id: 'q1', question: 'Choose a design', type: 'none' as const, multi_select: false,
+const questions = [{ id: 'q1', question: 'Choose a design', multi_select: false,
   options: [{ label: 'A', recommended: true }, { label: 'B' }] }]
 const row = (callId = 'c1') => ({ callId, questions })
 function carrier(sessionId = 's1', callId = 'c1') {
@@ -252,7 +252,7 @@ describe('tool view and file addresses', () => {
     const entry = h.live('tool.call.toolview')[0]!
     const Component = entry.Component
     const face = entry.options.inject('s1')
-    const fileQuestions = [{ ...questions[0], type: 'file', options: [{ label: 'Report', proto: '/tmp/report.md' }] }]
+    const fileQuestions = [{ ...questions[0], options: [{ label: 'Report', proto: '/tmp/report.md' }] }]
     const openFile = vi.fn()
     const disclosure = observable(false)
     render(<Component phase="result" callId="c1" openFile={openFile}

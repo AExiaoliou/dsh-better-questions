@@ -1,9 +1,8 @@
 import type { Context } from '@deepseek-ai/cordis';
 import type { ToolDefinition } from '@deepseek-ai/dsh-tools';
 import type {} from '@deepseek-ai/dsh-user-questions';
-import { canonicalizeAnswers, parseRequest, QUESTION_TYPES, TOOL_NAME } from '../shared/model.js';
+import { canonicalizeAnswers, parseRequest, TOOL_NAME } from '../shared/model.js';
 
-/** Deliberately compact: preview grammar and examples are loaded through the named skills. */
 export const toolParameters = {
   type: 'object',
   additionalProperties: false,
@@ -17,7 +16,6 @@ export const toolParameters = {
           id: { type: 'string', description: 'Unique question id; echoed in the answer.' },
           question: { type: 'string', description: 'The question to ask.' },
           header: { type: 'string', description: 'Optional short heading.' },
-          type: { type: 'string', enum: [...QUESTION_TYPES], description: 'Default none. Other types require options with proto; file is a path, others are inline content.' },
           options: {
             type: 'array',
             items: {
@@ -25,7 +23,7 @@ export const toolParameters = {
               properties: {
                 label: { type: 'string', description: 'Unique within this question; selected labels are returned unchanged.' },
                 description: { type: 'string', description: 'Optional tradeoff or explanation.' },
-                proto: { type: 'string', description: 'Required nonempty for layout (restricted YAML), code, html, file. Ignored for none.' },
+                proto: { type: 'string', description: 'Path to a prototype file you wrote before asking, relative to the session workspace or absolute. Selecting the option opens it in the right sidebar. Omit for an ordinary option.' },
                 recommended: { type: 'boolean', description: 'At most one per question. Default false; displays a badge without selecting.' },
               },
             },
@@ -52,14 +50,14 @@ export const outputSchema = {
 export function createQuestionTool(ctx: Pick<Context, 'userQuestions'>): ToolDefinition {
   return {
     name: TOOL_NAME,
-    description: 'Ask the user to choose or clarify, optionally comparing prototypes. Read better-questions-select before any type-specific skill; use it to choose each question type. Load each better-questions-{type} skill only before its first use in this conversation; reuse the selection and type skills afterward. Selecting an option shows its preview (files open in the sidebar).',
+    description: 'Ask the user to choose or clarify. For a prototype option, first write the prototype file, then put its path in that option\'s proto; selecting the option opens the file in the right sidebar, which renders it by file type. Never put prototype content in proto. Options without proto are ordinary choices.',
     parameters: toolParameters,
     output: {
       schema: outputSchema,
       render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }],
     },
     async execute(input, exec) {
-      const { questions } = parseRequest(input, { layouts: true });
+      const { questions } = parseRequest(input);
       const result = await ctx.userQuestions.ask({
         questions: questions.map(question => ({
           id: question.id,

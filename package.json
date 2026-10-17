@@ -1,7 +1,7 @@
 {
   "name": "dsh-better-questions",
-  "version": "0.1.4",
-  "description": "Prototype-aware questions for DeepSeek Harness: YAML layouts, code, HTML and sidebar files.",
+  "version": "0.2.0",
+  "description": "Prototype-aware questions for DeepSeek Harness: option prototypes open in the right sidebar.",
   "type": "module",
   "repository": {
     "type": "git",
@@ -25,7 +25,6 @@
   },
   "files": [
     "dist",
-    "skills",
     "locale",
     "icon.svg",
     "cordis.patch.yml",
@@ -38,8 +37,7 @@
     "typecheck": "tsc -p tsconfig.host.json && tsc -p tsconfig.client.json",
     "test": "vitest run",
     "check": "pnpm typecheck && pnpm test && pnpm build && node scripts/smoke.mjs && pnpm measure",
-    "measure": "node scripts/measure.mjs",
-    "visual": "node scripts/visual/shoot.mjs"
+    "measure": "node scripts/measure.mjs"
   },
   "dsh": {
     "engines": {
@@ -78,7 +76,6 @@
     "@deepseek-ai/dsh-client-ui-user-questions": "0.2.1-alpha.1",
     "@deepseek-ai/dsh-session": "0.2.1-alpha.1",
     "@deepseek-ai/dsh-session-projection": "0.2.1-alpha.1",
-    "@deepseek-ai/dsh-skill": "0.2.1-alpha.1",
     "@deepseek-ai/dsh-tools": "0.2.1-alpha.1",
     "@deepseek-ai/dsh-user-questions": "0.2.1-alpha.1",
     "@testing-library/react": "^16.3.0",
@@ -94,7 +91,6 @@
     "react-dom": "^18.3.1",
     "typescript": "^5.9.3",
     "vitest": "^4.0.0",
-    "yaml": "2.9.1",
     "zod": "^4.3.0",
     "zustand": "~4.4.7"
   }

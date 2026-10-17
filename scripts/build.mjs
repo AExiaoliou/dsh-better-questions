@@ -6,7 +6,7 @@ await build({
   entryPoints: ['src/index.ts'], outfile: 'dist/index.js',
   bundle: true, format: 'esm', platform: 'node', target: 'node22',
   minify: true, sourcemap: true, legalComments: 'linked',
-  // Bundled CJS dependencies (yaml) may require Node built-ins; give the ESM bundle a real require.
+  // Bundled CommonJS dependencies may require Node built-ins; give the ESM bundle a real require.
   banner: { js: "import { createRequire as __bqCreateRequire } from 'node:module'; const require = __bqCreateRequire(import.meta.url);" },
 });
 const client = await build({

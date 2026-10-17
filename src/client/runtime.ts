@@ -101,18 +101,14 @@ export function validDraft(value: unknown, questions: BetterQuestion[]): boolean
   if (typeof value !== 'object' || value === null) return false
   const draft = value as Record<string, unknown>
   if (!Number.isInteger(draft.index) || (draft.index as number) < 0 || (draft.index as number) >= questions.length
-    || typeof draft.collapsed !== 'boolean' || typeof draft.answers !== 'object' || draft.answers === null
-    || typeof draft.preview !== 'object' || draft.preview === null) return false
+    || typeof draft.collapsed !== 'boolean' || typeof draft.answers !== 'object' || draft.answers === null) return false
   return questions.every(question => {
     const answer = (draft.answers as Record<string, unknown>)[question.id]
     if (typeof answer !== 'object' || answer === null) return false
     const row = answer as Record<string, unknown>
-    const preview = (draft.preview as Record<string, unknown>)[question.id]
     return Array.isArray(row.selected) && (question.multi_select || row.selected.length <= 1)
       && new Set(row.selected).size === row.selected.length
       && row.selected.every(label => typeof label === 'string'
         && question.options.some(option => option.label === label)) && typeof row.custom === 'string'
-      && (preview === undefined || (Number.isInteger(preview) && (preview as number) >= 0
-        && (preview as number) <= Math.max(0, question.options.length - 1)))
   })
 }

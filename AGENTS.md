@@ -2,7 +2,7 @@
 
 ## Repository overview
 
-`dsh-better-questions` is a DeepSeek Harness plugin that provides the `ask_with_prototype` tool. It supports ordinary questions plus YAML layout, code, HTML/CSS, and file prototypes. The package targets DSH `0.2.1-alpha.1`, Cordis `4.0.5-alpha.1`, and React 18; keep those compatibility constraints in mind when changing runtime integrations.
+`dsh-better-questions` is a DeepSeek Harness plugin that provides the `ask_with_prototype` tool. It supports ordinary questions plus optional prototype files: the model writes a prototype file first and puts its path in an option's `proto`, and selecting that option (or its "Open file" action) opens the file in the Harness right sidebar, which renders it by file type. The plugin renders nothing inline. The package targets DSH `0.2.1-alpha.1`, Cordis `4.0.5-alpha.1`, and React 18; keep those compatibility constraints in mind when changing runtime integrations.
 
 ## Development environment
 
@@ -15,11 +15,9 @@
 
 - `src/index.ts`: Host plugin entry point and registry wiring.
 - `src/host/`: Host-side tool and session projection implementation.
-- `src/client/`: Client-side React views, previews, stores, and lifecycle integration.
-- `src/shared/`: Shared request/result models and layout definitions.
-- `src/skills.ts`: Registers the bundled prototype-specific skills.
-- `skills/`: Skill markdown loaded on demand by the plugin.
-- `scripts/`: Build, smoke, measurement, and optional visual verification scripts.
+- `src/client/`: Client-side React views, draft stores, sidebar opening, and lifecycle integration.
+- `src/shared/`: Shared request/result models.
+- `scripts/`: Build, smoke, and measurement scripts.
 - `cordis.patch.yml`: Harness bundle patch and injection configuration.
 
 The Host and Client TypeScript projects are checked independently through `tsconfig.host.json` and `tsconfig.client.json`. Preserve the existing separation when adding imports or runtime behavior.
@@ -32,7 +30,7 @@ Run the full local validation pipeline before submitting a substantive change:
 pnpm check
 ```
 
-Focused commands are:
+`pnpm check` runs typecheck, test, build, `scripts/smoke.mjs`, and `pnpm measure` in that order. Focused commands are:
 
 ```sh
 pnpm typecheck
@@ -43,19 +41,19 @@ pnpm measure
 pnpm pack
 ```
 
-`pnpm visual` is optional and requires local Chrome. Its screenshots are development artifacts and should not be committed.
+`node scripts/smoke.mjs` and `pnpm measure` load `dist/`, so run `pnpm build` first.
 
 ## Change guidance
 
 - Keep changes focused and preserve the public tool and result contracts.
-- When changing question schemas, prototype validation, preview behavior, skill content, or DSH integration points, update the relevant tests and README documentation in the same change.
+- When changing question schemas, prototype path validation, sidebar opening behavior, or DSH integration points, update the relevant tests and README documentation in the same change.
 - Keep Host code free of Client-only imports and keep Client code compatible with the Harness ModuleLoader/runtime singletons.
-- Treat DSH and Cordis APIs as version-specific. Verify contracts against the pinned runtime version and existing project documentation before changing registry, tool, skill, projection, slot, or client lifecycle code.
-- Preserve the safety boundaries for HTML previews and the strict validation rules for layout prototypes.
+- Keep prototype rendering out of the plugin: the card only opens a file (for example through `ctx.sidebarRight.openResource`), and the sidebar's `documentPreviews` registry owns rendering and its safety boundaries.
+- Treat DSH and Cordis APIs as version-specific. Verify contracts against the pinned runtime version and existing project documentation before changing registry, tool, projection, slot, or client lifecycle code.
 - Use clear commit messages. Include the reason for a change and the validation commands run in the pull request.
 
 ## Testing and review
 
-For runtime or behavior changes, run the narrowest relevant focused checks while iterating, then run `pnpm check` before committing. UI changes should also receive the available visual/runtime verification described in `README.md` when a compatible Harness environment is available. Document compatibility limitations when runtime checks cannot be completed.
+For runtime or behavior changes, run the narrowest relevant focused checks while iterating, then run `pnpm check` before committing. UI changes should also be verified against a compatible Harness environment (for example that selecting an option opens the right-sidebar file preview) when one is available. Document compatibility limitations when runtime checks cannot be completed.
 
 Do not add secrets, personal profile data, machine-specific absolute paths, generated bundles, or dependency directories to commits.
